@@ -350,8 +350,13 @@ async function duplicate(book,receipt){
 async function insertEntry(x,statusId){
  try{
   if(x.receipt_book&&x.receipt_number&&await duplicate(x.receipt_book,x.receipt_number))throw Error("⚠️ या पावती पुस्तकातील हा पावती नंबर आधीच वापरला आहे.");
-  await api("/rest/v1/mandal_entries",{method:"POST",headers:{"Prefer":"return=minimal"},body:JSON.stringify(x)});
-  msg(statusId,"✅ Save झाला.");await refreshAll();return true;
+  const saved=await api("/rest/v1/mandal_entries",{method:"POST",headers:{"Prefer":"return=representation"},body:JSON.stringify(x)});
+  const row=Array.isArray(saved)&&saved.length?saved[0]:Object.assign({},x,{id:"local-"+Date.now(),created_at:new Date().toISOString()});
+  entries=[row,...entries.filter(e=>String(e.id)!==String(row.id))];
+  try{localStorage.setItem("mt_entries_cache",JSON.stringify(entries.slice(0,2000)));}catch(_){}
+  renderEntries();renderReports();updateDash();
+  msg(statusId,"✅ Save झाला आणि Entry लगेच दिसली.");
+  return true;
  }catch(e){msg(statusId,"❌ "+e.message,false);return false}
 }
 async function saveMember(){
@@ -361,8 +366,26 @@ async function saveAdvert(){let ok=await insertEntry({entry_type:"जाहि�
 async function saveExpense(){await insertEntry({entry_type:"खर्च",name:$("expName").value.trim(),amount:Number($("expAmount").value||0),payment_mode:$("expMode").value,entry_date:$("expDate").value||today(),category:$("expCat").value.trim(),receipt_number:$("expReceipt").value.trim(),remark:$("expRemark").value.trim()},"expStatus");}
 
 async function loadEntries(){
- try{entries=await api("/rest/v1/mandal_entries?select=*&order=created_at.desc&limit=2000");renderEntries();renderReports();updateDash();}
- catch(e){$("entryTable").innerHTML="<p class='bad'>❌ "+esc(e.message)+"</p>";}
+ try{
+  const cloud=await api("/rest/v1/mandal_entries?select=*&order=created_at.desc&limit=2000");
+  if(Array.isArray(cloud)&&cloud.length){
+    entries=cloud;
+    try{localStorage.setItem("mt_entries_cache",JSON.stringify(entries.slice(0,2000)));}catch(_){}
+  }else{
+    try{
+      const cached=JSON.parse(localStorage.getItem("mt_entries_cache")||"[]");
+      if(Array.isArray(cached)&&cached.length) entries=cached;
+      else entries=[];
+    }catch(_){entries=[];}
+  }
+  renderEntries();renderReports();updateDash();
+ }catch(e){
+  try{
+    const cached=JSON.parse(localStorage.getItem("mt_entries_cache")||"[]");
+    if(Array.isArray(cached)&&cached.length){entries=cached;renderEntries();renderReports();updateDash();return;}
+  }catch(_){}
+  $("entryTable").innerHTML="<p class='bad'>❌ Cloud entries load error: "+esc(e.message)+"</p>";
+ }
 }
 function renderEntries(){
  let rows=[...entries];
