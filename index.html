@@ -1,10 +1,13 @@
 <!doctype html>
 <html lang="mr">
 <head>
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="theme-color" content="#4b0d13">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="वरळीचा लंबोदर">
 
 <meta charset="utf-8">
@@ -477,10 +480,11 @@ function printLatestReceipt(){
  document.body.appendChild(d); window.print(); setTimeout(()=>d.remove(),500);
 }
 </script>
+
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js").catch(function(){});
   });
 }
 </script>
