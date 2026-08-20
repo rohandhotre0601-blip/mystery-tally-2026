@@ -1,0 +1,11 @@
+{
+  "name": "वरळीचा लंबोदर",
+  "short_name": "लंबोदर",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#10090b",
+  "theme_color": "#4b0d13",
+  "orientation": "portrait",
+  "description": "Mystery Tally 2026 - जय शक्ती जय भवानी मित्र मंडळ"
+}
